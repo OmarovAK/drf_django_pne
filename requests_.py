@@ -9,11 +9,11 @@ def list_sensors():
     result = requests.get(url=url)
 
     if result.status_code == 200:
-        print('\tСПИСОК ДАТЧИКОВ')
 
         list_id = [id_['id'] for id_ in result.json()]
 
         if len(result.json()) > 0:
+            print('\tСПИСОК ДАТЧИКОВ')
             for dict_ in result.json():
                 for key, val in dict_.items():
                     if key == 'id':
@@ -48,8 +48,7 @@ def list_sensors():
                 print('________________')
             return list_id
         else:
-            print('Датчиков в базе данных нет. Давайте их добавим')
-            create_sensor()
+            print('\t\tДатчиков в базе данных нет. Сначало их нужно добавить'.upper())
 
 
 def create_sensor():
@@ -68,7 +67,6 @@ def create_sensor():
             print('______________')
             print(f'\t\tДатчик {name_sensor} с месторасположением {desc} успешно создан'.upper())
             print('______________')
-            main()
             break
         else:
             print('Что-то пошло не так, ')
@@ -80,69 +78,70 @@ def update_sensor():
     while True:
         try:
             number_sensor = int(input('Для изменения названия датчика введите его номер: '))
-            if number_sensor in my_list:
-                name_sensor = input(f'Введите новое название для датчика с id {number_sensor}: ').title().strip()
-                desc_sensor = input(f'Введите новое название для датчика с id {number_sensor}: ').title().strip()
-                if len(name_sensor) > 0:
-                    URL = f'http://127.0.0.1:8000/sensor_update/{number_sensor}'
-                    data = {
-                        'id': number_sensor,
-                        'name': name_sensor,
-                        'description': desc_sensor,
-                    }
-                    result = requests.put(url=URL, data=data)
-                    if result.status_code == 200:
-                        print("__________________")
-                        print(f'\t\tДатчик с id {number_sensor} изменен'.upper())
-                        print("__________________")
-                        break
+            if not my_list is None:
+                if number_sensor in my_list:
+                    name_sensor = input(f'Введите новое название для датчика с id {number_sensor}: ').title().strip()
+                    desc_sensor = input(f'Введите новое название для датчика с id {number_sensor}: ').title().strip()
+                    if len(name_sensor) > 0:
+                        URL = f'http://127.0.0.1:8000/sensor_update/{number_sensor}'
+                        data = {
+                            'id': number_sensor,
+                            'name': name_sensor,
+                            'description': desc_sensor,
+                        }
+                        result = requests.put(url=URL, data=data)
+                        if result.status_code == 200:
+                            print("__________________")
+                            print(f'\t\tДатчик с id {number_sensor} изменен'.upper())
+                            print("__________________")
+                            break
+                        else:
+                            print('Что то пошло не так')
                     else:
-                        print('Что то пошло не так')
+                        print('Название датчика должно содержать хотя бы один символ')
+
                 else:
-                    print('Название датчика должно содержать хотя бы один символ')
+                    print(
+                        f'Введенного номера датчика ({number_sensor}) нет в списке датчиков: {", ".join(map(str, my_list))}')
 
 
-
-
-            else:
-                print(
-                    f'Введенного номера датчика ({number_sensor}) нет в списке датчиков: {", ".join(map(str, my_list))}')
         except ValueError:
             print('Ожидаем только число')
 
 
 def add_measurement():
     list_id = list_sensors()
-    print('Добавление измерений температуры.'.upper())
-    while True:
-        try:
-            number_id = int(input('Введите номер датчика: '))
-            if number_id in list_id:
-                while True:
-                    try:
-                        temperature_value = int(input(f'Введите значение температуры для датчика # {number_id}: '))
+    if not list_id is None:
+        print('Добавление измерений температуры.'.upper())
+        while True:
+            try:
+                number_id = int(input('Введите номер датчика: '))
+                if number_id in list_id:
+                    while True:
+                        try:
+                            temperature_value = int(input(f'Введите значение температуры для датчика # {number_id}: '))
+                            break
+                        except ValueError:
+                            print('Ожидается только число.')
+                    url = 'http://127.0.0.1:8000/measurement_add/'
+                    data = {
+                        'sensor': number_id,
+                        'temperature_value': temperature_value,
+                        'date': datetime.datetime.now()
+                    }
+                    res = requests.post(url=url, data=data)
+                    if res.status_code == 201:
+                        print(
+                            f'\t\tЗначение температуры ({temperature_value}) для датчика с номером {number_id} успешно добавлено'.upper())
                         break
-                    except ValueError:
-                        print('Ожидается только число.')
-                url = 'http://127.0.0.1:8000/measurement_add/'
-                data = {
-                    'sensor': number_id,
-                    'temperature_value': temperature_value,
-                    'date': datetime.datetime.now()
-                }
-                res = requests.post(url=url, data=data)
-                if res.status_code == 201:
-                    print(
-                        f'\t\tЗначение температуры ({temperature_value}) для датчика с номером {number_id} успешно добавлено'.upper())
-                    break
+                    else:
+                        print('Что - то пошло не так')
+
                 else:
-                    print('Что - то пошло не так')
+                    print(f'Введенного датчика ({number_id}) нет в списке датчиков ({", ".join(map(str, list_id))})')
 
-            else:
-                print(f'Введенного датчика ({number_id}) нет в списке датчиков ({", ".join(map(str, list_id))})')
-
-        except ValueError:
-            print('Ожидается только число.')
+            except ValueError:
+                print('Ожидается только число.')
 
 
 def main():
