@@ -68,6 +68,7 @@ def create_sensor():
             print('______________')
             print(f'\t\tДатчик {name_sensor} с месторасположением {desc} успешно создан'.upper())
             print('______________')
+            main()
             break
         else:
             print('Что-то пошло не так, ')
