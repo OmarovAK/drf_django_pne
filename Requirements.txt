@@ -1,4 +1,6 @@
-Django
+Django~=5.0
 psycopg2-binary
-requests
+requests~=2.31.0
 
+
+djangorestframework~=3.14.0
